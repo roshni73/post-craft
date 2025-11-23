@@ -1,52 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { useFormValidation } from '@/hooks/useFormValidation';
 import { Loader2, BookOpen } from 'lucide-react';
+import * as yup from 'yup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Alert, AlertDescription } from '@/Components/Alert';
 import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
 
-export function Login() {
+// Use type instead of interface for better compatibility
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
+const loginSchema = yup.object({
+  email: yup.string().required('Email is required').email('Please enter a valid email address'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Password must be at least 6 characters'),
+});
+
+export function LoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const {
+    values: formData,
+    loading,
+    submitError,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    getFieldError,
+  } = useFormValidation<LoginFormData>({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values: LoginFormData) => {
+      await login(values.email, values.password);
+      navigate('/dashboard');
+    },
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -63,10 +69,10 @@ export function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {submitError && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             )}
 
@@ -76,11 +82,15 @@ export function Login() {
                 id="email"
                 type="email"
                 placeholder="john@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
                 disabled={loading}
-                required
+                className={getFieldError('email') ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {getFieldError('email') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('email')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -89,11 +99,15 @@ export function Login() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
                 disabled={loading}
-                required
+                className={getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {getFieldError('password') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
+              )}
               <p className="text-sm text-muted-foreground">
                 Hint: Use any email and password (min 6 characters)
               </p>

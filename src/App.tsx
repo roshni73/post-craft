@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useThemeStore } from './lib/store';
-import Navbar from './Components/Navbar';
 import { Home } from './view/Home';
+import Register from './view/Register';
+import { LoginPage } from './view/Login';
 
 function App() {
   const { mode } = useThemeStore();
@@ -19,7 +20,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* <Route path="/register" element={<Register />} /> */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </Router>
   );

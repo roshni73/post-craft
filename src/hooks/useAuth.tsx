@@ -1,13 +1,16 @@
-import type { AuthState, User } from '@/types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { AuthState, User } from '../types';
 
+// Mock authentication service
 const mockLogin = async (
   email: string,
   password: string
 ): Promise<{ user: User; token: string }> => {
+  // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800));
 
+  // Mock validation
   if (!email || !password) {
     throw new Error('Email and password are required');
   }
@@ -16,6 +19,7 @@ const mockLogin = async (
     throw new Error('Invalid credentials');
   }
 
+  // Return mock user and token
   return {
     user: {
       id: 1,

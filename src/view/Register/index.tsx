@@ -1,68 +1,92 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useFormValidation } from '@/hooks/useFormValidation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
-import { Alert, AlertDescription } from '@/Components/Alert';
 import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
+import { Alert, AlertDescription } from '@/Components/Alert';
+import * as yup from 'yup';
 
-export function Register() {
+interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  [key: string]: unknown;
+}
+
+// Or use type alias instead
+// type RegisterFormData = {
+//   name: string;
+//   email: string;
+//   password: string;
+//   confirmPassword: string;
+// }
+
+const registerSchema = yup.object({
+  name: yup
+    .string()
+    .required('Full name is required')
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be less than 50 characters')
+    .matches(/^[a-zA-Z\s]*$/, 'Name can only contain letters and spaces'),
+
+  email: yup
+    .string()
+    .required('Email is required')
+    .email('Please enter a valid email address')
+    .matches(/^\S+@\S+\.\S+$/, 'Email must be a valid format'),
+
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Password must be at least 6 characters')
+    .max(50, 'Password must be less than 50 characters')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+    ),
+
+  confirmPassword: yup
+    .string()
+    .required('Please confirm your password')
+    .oneOf([yup.ref('password')], 'Passwords must match'),
+});
+
+export default function Register() {
   const navigate = useNavigate();
   const { register, isAuthenticated } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const {
+    values: formData,
+    loading,
+    submitError,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    getFieldError,
+  } = useFormValidation<RegisterFormData>({
+    initialValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (values: RegisterFormData) => {
+      await register(values.name, values.email, values.password);
+      navigate('/dashboard');
+    },
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    // Client-side validation
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await register(name, email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -79,10 +103,10 @@ export function Register() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {submitError && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             )}
 
@@ -92,11 +116,15 @@ export function Register() {
                 id="name"
                 type="text"
                 placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={formData.name as string}
+                onChange={(e) => handleChange('name', e.target.value)}
+                onBlur={() => handleBlur('name')}
                 disabled={loading}
-                required
+                className={getFieldError('name') ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {getFieldError('name') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('name')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -105,11 +133,15 @@ export function Register() {
                 id="email"
                 type="email"
                 placeholder="john@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email as string}
+                onChange={(e) => handleChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
                 disabled={loading}
-                required
+                className={getFieldError('email') ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {getFieldError('email') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('email')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -118,11 +150,18 @@ export function Register() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password as string}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
                 disabled={loading}
-                required
+                className={getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}
               />
+              {getFieldError('password') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Must be at least 6 characters with uppercase, lowercase, and number
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -131,11 +170,17 @@ export function Register() {
                 id="confirmPassword"
                 type="password"
                 placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword as string}
+                onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                onBlur={() => handleBlur('confirmPassword')}
                 disabled={loading}
-                required
+                className={
+                  getFieldError('confirmPassword') ? 'border-red-500 focus:border-red-500' : ''
+                }
               />
+              {getFieldError('confirmPassword') && (
+                <p className="text-sm text-red-600 mt-1">{getFieldError('confirmPassword')}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
