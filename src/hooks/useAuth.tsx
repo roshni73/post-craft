@@ -1,6 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuthState, User } from '../types';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean }>;
+  logout: () => void;
+}
 
 // Mock authentication service
 const mockLogin = async (
@@ -35,7 +50,7 @@ const mockRegister = async (
   name: string,
   email: string,
   password: string
-): Promise<{ user: User; token: string }> => {
+): Promise<{ success: boolean }> => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -48,16 +63,8 @@ const mockRegister = async (
     throw new Error('Password must be at least 6 characters');
   }
 
-  // Return mock user and token
-  return {
-    user: {
-      id: Math.floor(Math.random() * 1000),
-      name,
-      email,
-      username: email.split('@')[0],
-    },
-    token: 'mock-jwt-token-' + Math.random().toString(36).substr(2, 9),
-  };
+  // Return success only - NO user/token for auto-login
+  return { success: true };
 };
 
 export const useAuth = create<AuthState>()(
@@ -80,8 +87,11 @@ export const useAuth = create<AuthState>()(
       register: async (name: string, email: string, password: string) => {
         // eslint-disable-next-line no-useless-catch
         try {
-          const { user, token } = await mockRegister(name, email, password);
-          set({ user, token, isAuthenticated: true });
+          // Call register but DON'T set auth state
+          const result = await mockRegister(name, email, password);
+
+          // Return success without logging in
+          return result;
         } catch (error) {
           throw error;
         }

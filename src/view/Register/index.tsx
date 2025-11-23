@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, BookOpen } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Label } from '@/Components/Label';
@@ -9,6 +8,7 @@ import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
 import { Alert, AlertDescription } from '@/Components/Alert';
 import * as yup from 'yup';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RegisterFormData {
   name: string;
@@ -17,14 +17,6 @@ interface RegisterFormData {
   confirmPassword: string;
   [key: string]: unknown;
 }
-
-// Or use type alias instead
-// type RegisterFormData = {
-//   name: string;
-//   email: string;
-//   password: string;
-//   confirmPassword: string;
-// }
 
 const registerSchema = yup.object({
   name: yup
@@ -58,7 +50,7 @@ const registerSchema = yup.object({
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
+  const { register } = useAuth();
 
   const {
     values: formData,
@@ -68,6 +60,7 @@ export default function Register() {
     handleBlur,
     handleSubmit,
     getFieldError,
+    setSubmitError,
   } = useFormValidation<RegisterFormData>({
     initialValues: {
       name: '',
@@ -78,15 +71,15 @@ export default function Register() {
     validationSchema: registerSchema,
     onSubmit: async (values: RegisterFormData) => {
       await register(values.name, values.email, values.password);
-      navigate('/dashboard');
+      setSubmitError('');
+      navigate('/login', {
+        state: {
+          message: 'Registration successful! Please login to continue.',
+        },
+        replace: true,
+      });
     },
   });
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -149,7 +142,7 @@ export default function Register() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="password"
                 value={formData.password as string}
                 onChange={(e) => handleChange('password', e.target.value)}
                 onBlur={() => handleBlur('password')}
@@ -169,7 +162,7 @@ export default function Register() {
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder="confirm Password"
                 value={formData.confirmPassword as string}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
                 onBlur={() => handleBlur('confirmPassword')}

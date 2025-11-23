@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen, CheckCircle2 } from 'lucide-react';
 import * as yup from 'yup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Alert, AlertDescription } from '@/Components/Alert';
@@ -10,11 +10,11 @@ import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
 
-// Use type instead of interface for better compatibility
-type LoginFormData = {
+interface LoginFormData {
   email: string;
   password: string;
-};
+  [key: string]: unknown;
+}
 
 const loginSchema = yup.object({
   email: yup.string().required('Email is required').email('Please enter a valid email address'),
@@ -26,7 +26,9 @@ const loginSchema = yup.object({
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const [successMessage, setSuccessMessage] = useState('');
 
   const {
     values: formData,
@@ -47,6 +49,15 @@ export function LoginPage() {
       navigate('/dashboard');
     },
   });
+
+  // Check for success message from registration
+  useEffect(() => {
+    if (location.state?.message) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSuccessMessage(location.state.message);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -70,6 +81,14 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {successMessage && (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Error Message */}
             {submitError && (
               <Alert variant="destructive">
                 <AlertDescription>{submitError}</AlertDescription>
@@ -82,7 +101,7 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="john@example.com"
-                value={formData.email}
+                value={formData.email as string}
                 onChange={(e) => handleChange('email', e.target.value)}
                 onBlur={() => handleBlur('email')}
                 disabled={loading}
@@ -99,7 +118,7 @@ export function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                value={formData.password}
+                value={formData.password as string}
                 onChange={(e) => handleChange('password', e.target.value)}
                 onBlur={() => handleBlur('password')}
                 disabled={loading}
