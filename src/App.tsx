@@ -1,14 +1,25 @@
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useThemeStore } from './lib/store';
+import { Home } from './view/Home';
 
-export default function App() {
+function App() {
+  const { mode } = useThemeStore();
+  useEffect(() => {
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [mode]);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
-      <h1 className="text-4xl font-bold mb-4">TailwindCSS is working! ✅</h1>
-      <p className="text-lg">
-        This background and text color changes with dark mode.
-      </p>
-      <button className="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-        Test Button
-      </button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
