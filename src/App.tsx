@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useThemeStore } from './lib/store';
+import Navbar from './Components/Navbar';
 import { Home } from './view/Home';
 
 function App() {
   const { mode } = useThemeStore();
+
   useEffect(() => {
     if (mode === 'dark') {
       document.documentElement.classList.add('dark');
@@ -17,6 +19,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        {/* <Route path="/login" element={<Login />} /> */}
       </Routes>
     </Router>
   );

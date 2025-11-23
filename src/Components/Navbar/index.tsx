@@ -8,7 +8,7 @@ export default function Navbar() {
   const { mode, toggleTheme } = useThemeStore();
 
   return (
-    <header className="border-b bg-card sticky top-0 z-50">
+    <nav className="border-b bg-card sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <div className="bg-primary rounded-full p-2">
@@ -28,6 +28,6 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
-    </header>
+    </nav>
   );
 }
