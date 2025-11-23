@@ -47,3 +47,4 @@ export const CardFooter: React.FC<CardProps> = ({ className = '', ...props }) =>
     {...props}
   />
 );
+Card.displayName = 'Card';

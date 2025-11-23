@@ -11,3 +11,4 @@ export const Input: React.FC<InputProps> = ({ className = '', type = 'text', ...
 
   return <input type={type} className={`${baseClasses} ${className}`} {...props} />;
 };
+Input.displayName = 'Input';

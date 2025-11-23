@@ -45,3 +45,4 @@ export const AlertDescription: React.FC<React.HTMLAttributes<HTMLDivElement>> = 
     {...props}
   />
 );
+Alert.displayName = 'Alert';

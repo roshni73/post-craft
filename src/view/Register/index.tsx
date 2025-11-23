@@ -3,12 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
+import { Alert, AlertDescription } from '@/Components/Alert';
 import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
-import { Alert, AlertDescription } from '@/Components/Alert';
 
-export default function Register() {
+export function Register() {
   const navigate = useNavigate();
   const { register, isAuthenticated } = useAuth();
   const [name, setName] = useState('');
@@ -29,6 +29,7 @@ export default function Register() {
     setError('');
     setLoading(true);
 
+    // Client-side validation
     if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -84,6 +85,7 @@ export default function Register() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -96,6 +98,7 @@ export default function Register() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -108,6 +111,7 @@ export default function Register() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -120,6 +124,7 @@ export default function Register() {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -132,6 +137,7 @@ export default function Register() {
                 required
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
@@ -142,6 +148,7 @@ export default function Register() {
                 'Sign Up'
               )}
             </Button>
+
             <div className="text-center">
               <span className="text-muted-foreground">Already have an account? </span>
               <Link to="/login" className="text-primary hover:underline">
