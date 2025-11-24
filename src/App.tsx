@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useThemeStore } from './lib/store';
+import { useTheme } from './hooks/useTheme';
 import { ToastProvider, ToastContainer } from './Components/Toast';
 import { Home } from './view/Home';
 import Register from './view/Register';
@@ -9,13 +9,14 @@ import { ProtectedRoute } from './Components/ProtectedRoute';
 import { NotFound } from './view/NotFound';
 import { Loader2 } from 'lucide-react';
 
-const Dashboard = lazy(() => import('./view/Dashboard'));
-const PostCreate = lazy(() => import('./view/PostCreate'));
-const PostEdit = lazy(() => import('./view/PostEdit'));
-const PostView = lazy(() => import('./view/PostView'));
+const Dashboard = lazy(() => import("./view/Dashboard"));
+const PostCreate = lazy(() => import("./view/PostCreate"));
+const PostEdit = lazy(() => import("./view/PostEdit"));
+const PostView = lazy(() => import("./view/PostView"));
+
 
 function App() {
-  const { mode } = useThemeStore();
+  const { mode } = useTheme();
 
   useEffect(() => {
     if (mode === 'dark') {

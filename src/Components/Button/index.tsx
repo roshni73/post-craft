@@ -1,4 +1,4 @@
-import { useThemeStore } from '@/lib/store';
+import { useTheme } from '@/hooks/useTheme';
 import * as React from 'react';
 
 type ButtonVariant = 'default' | 'outline' | 'ghost' | 'link' | 'border';
@@ -23,7 +23,7 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   ...props
 }) => {
-  const { mode } = useThemeStore();
+  const { mode } = useTheme();
 
   const baseClasses =
     'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:pointer-events-none disabled:opacity-50';

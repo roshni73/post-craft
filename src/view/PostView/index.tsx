@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePosts } from '@/hooks/usePosts';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,7 +31,6 @@ export default function PostView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
 
   useEffect(() => {
     const loadPost = async () => {
@@ -99,7 +98,7 @@ export default function PostView() {
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="size-3.5" />
-                {createdAt.toLocaleDateString()}
+                {new Date(post.createdAt || Date.now()).toLocaleDateString()}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">

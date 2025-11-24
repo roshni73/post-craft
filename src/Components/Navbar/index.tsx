@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Moon, Sun } from 'lucide-react';
-import { useThemeStore } from '../../lib/store';
+import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '../Button';
 import { UserMenu } from '../Menu';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { mode, toggleTheme } = useThemeStore();
+  const { mode, toggleTheme } = useTheme();
   const { isAuthenticated } = useAuth();
 
   return (
