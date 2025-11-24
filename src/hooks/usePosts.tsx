@@ -116,4 +116,44 @@ export const usePosts = create<PostsState>((set, get) => ({
       throw error;
     }
   },
+
+  getPost: async (id: number) => {
+    set({ loading: true, error: null });
+    try {
+      // First check if we have the post in state
+      const existingPost = get().posts.find((p) => p.id === id);
+      if (existingPost) {
+        set({ loading: false });
+        return existingPost;
+      }
+
+      // If not, fetch from API
+      const response = await fetch(`${API_BASE}/posts/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch post');
+      const data = await response.json();
+
+      // Enhance with mock data
+      const enhancedPost = {
+        ...data,
+        category: ['Technology', 'Lifestyle', 'Travel', 'Food', 'Health'][id % 5],
+        tags: [
+          ['react', 'javascript'],
+          ['lifestyle', 'tips'],
+          ['adventure', 'travel'],
+          ['recipes', 'cooking'],
+          ['wellness', 'fitness'],
+        ][id % 5],
+        createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+      };
+
+      set({ loading: false });
+      return enhancedPost;
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'An error occurred',
+        loading: false,
+      });
+      return null;
+    }
+  },
 }));
