@@ -2,9 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/Components/Button';
 import Navbar from '@/Components/Navbar';
 import { BookOpen, PenTool, Users, Zap } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Home() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900 text-foreground dark:text-gray-100">
@@ -18,12 +20,17 @@ export function Home() {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <Button size="lg" onClick={() => navigate('/register')}>
-              Start Writing
+            <Button
+              size="lg"
+              onClick={() => (isAuthenticated ? navigate('/dashboard') : navigate('/login'))}
+            >
+              {isAuthenticated ? 'Create Post' : 'Start Writing'}
             </Button>
-            <Button size="lg" onClick={() => navigate('/login')}>
-              Sign In
-            </Button>
+            {!isAuthenticated && (
+              <Button size="lg" variant="outline" onClick={() => navigate('/login')}>
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </section>
