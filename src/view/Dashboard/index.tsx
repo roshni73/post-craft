@@ -139,10 +139,11 @@ export default function Dashboard() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                    }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  }`}
                 >
                   {cat}
                 </button>
@@ -191,13 +192,13 @@ export default function Dashboard() {
             action={
               hasActiveFilters
                 ? {
-                  label: 'Clear Filters',
-                  onClick: handleClearFilters,
-                }
+                    label: 'Clear Filters',
+                    onClick: handleClearFilters,
+                  }
                 : {
-                  label: 'Create Story',
-                  onClick: () => navigate('/posts/create'),
-                }
+                    label: 'Create Story',
+                    onClick: () => navigate('/posts/create'),
+                  }
             }
           />
         ) : (
