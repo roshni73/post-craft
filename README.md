@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# Post Craft
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, feature-rich blog post management dashboard built with React, TypeScript, and Redux Toolkit.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Post Management**: Create, read, update, and delete posts with a rich text editor.
+- **Optimistic UI**: Instant feedback for edit and delete operations for a snappy user experience.
+- **Authentication**: Secure login and registration flow (mocked for demo).
+- **Dark Mode**: Fully supported dark/light theme with persistence.
+- **Responsive Design**: Beautiful UI that works on desktop, tablet, and mobile.
+- **State Management**: Centralized state using Redux Toolkit with persistence.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/) + [Redux Persist](https://github.com/rt2zz/redux-persist)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Rich Text Editor**: [Tiptap](https://tiptap.dev/)
+- **Routing**: [React Router](https://reactrouter.com/)
+- **Validation**: [Yup](https://github.com/jquense/yup)
 
-## Expanding the ESLint configuration
+## 📦 Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (v18 or higher)
+- pnpm (recommended) or npm/yarn
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/roshni73/post-craft.git
+   cd post-craft
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:3000`
+
+## 🏗️ Project Structure
+
+```
+src/
+├── Components/         # Reusable UI components
+├── hooks/              # Custom React hooks (usePosts, useAuth, useTheme)
+├── store/              # Redux store configuration
+│   ├── slices/         # Redux slices (posts, auth, theme)
+│   ├── hooks.ts        # Typed Redux hooks
+│   └── store.ts        # Store setup
+├── view/               # Page components (Dashboard, PostView, etc.)
+├── types/              # TypeScript type definitions
+├── App.tsx             # Main application component
+└── main.tsx            # Entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🔐 State Management
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The application uses **Redux Toolkit** for efficient and scalable state management:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Posts Slice**: Handles fetching, creating, updating, and deleting posts. Implements optimistic updates for immediate UI feedback.
+- **Auth Slice**: Manages user authentication state (user, token) and persists it to local storage.
+- **Theme Slice**: Controls the application theme (light/dark) and persists user preference.
+
+## 🎨 UI/UX Highlights
+
+- **Custom Alert Dialogs**: Beautiful, accessible modals for destructive actions.
+- **Toast Notifications**: Non-intrusive feedback for success and error states.
+- **Skeleton Loading**: Polished loading states for better perceived performance.
+- **Glassmorphism**: Modern design elements with backdrop blur effects.
+
+## 📝 License
+
+This project is licensed under the MIT License.
