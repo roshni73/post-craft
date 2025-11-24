@@ -32,6 +32,7 @@ export interface PostsState {
   addPost: (post: Omit<Post, 'id' | 'userId'>) => Promise<void>;
   updatePost: (id: number, post: Partial<Post>) => Promise<void>;
   deletePost: (id: number) => Promise<void>;
+  getPost: (id: number) => Promise<Post | null>;
 }
 
 export interface Theme {
