@@ -9,6 +9,16 @@ import { useToast } from '@/Components/Toast';
 import { EmptyState } from '@/Components/EmptyState';
 import { PostSkeleton } from '@/Components/PostSkeleton';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/Alert-Dialog';
+import {
   Plus,
   Edit,
   Trash2,
@@ -19,6 +29,7 @@ import {
   ChevronRight,
   Calendar,
   ArrowUpRight,
+  AlertTriangle,
 } from 'lucide-react';
 
 const POSTS_PER_PAGE = 6;
@@ -33,11 +44,15 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<number | null>(null);
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+    if (posts.length === 0) {
+      fetchPosts();
+    }
+  }, [fetchPosts, posts.length]);
 
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
@@ -68,17 +83,22 @@ export default function Dashboard() {
     setSearchParams({});
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
+  const handleDeleteClick = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    if (
-      window.confirm('Are you sure you want to delete this post? This action cannot be undone.')
-    ) {
-      try {
-        await deletePost(id);
-        addToast('Post deleted successfully', 'success');
-      } catch (err) {
-        addToast('Failed to delete post', 'error');
-      }
+    setPostToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (postToDelete === null) return;
+
+    try {
+      await deletePost(postToDelete);
+      addToast('Post deleted successfully', 'success');
+      setDeleteDialogOpen(false);
+      setPostToDelete(null);
+    } catch (err) {
+      addToast('Failed to delete post', 'error');
     }
   };
 
@@ -119,11 +139,10 @@ export default function Dashboard() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    selectedCategory === cat
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                    }`}
                 >
                   {cat}
                 </button>
@@ -172,13 +191,13 @@ export default function Dashboard() {
             action={
               hasActiveFilters
                 ? {
-                    label: 'Clear Filters',
-                    onClick: handleClearFilters,
-                  }
+                  label: 'Clear Filters',
+                  onClick: handleClearFilters,
+                }
                 : {
-                    label: 'Create Story',
-                    onClick: () => navigate('/posts/create'),
-                  }
+                  label: 'Create Story',
+                  onClick: () => navigate('/posts/create'),
+                }
             }
           />
         ) : (
@@ -218,7 +237,7 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary"
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/posts/${post.id}/edit`);
@@ -230,8 +249,8 @@ export default function Dashboard() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
-                        onClick={(e) => handleDelete(e, post.id)}
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={(e) => handleDeleteClick(e, post.id)}
                         title="Delete"
                       >
                         <Trash2 className="size-3.5" />
@@ -273,6 +292,32 @@ export default function Dashboard() {
           </>
         )}
       </main>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Delete Post?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              This action cannot be undone. This will permanently delete your post and remove it
+              from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="rounded-full bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
+            >
+              Delete Post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -6,10 +6,20 @@ import { Card, CardContent } from '@/Components/Card';
 import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
 import { Button } from '@/Components/Button';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { RichTextEditor } from '@/Components/RichTextEditor/Lazy';
 import { useToast } from '@/Components/Toast';
 import { Breadcrumbs } from '@/Components/Breadcrumbs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/Alert-Dialog';
 
 const categories = ['Technology', 'Lifestyle', 'Travel', 'Food', 'Health'];
 
@@ -23,6 +33,7 @@ export default function PostEdit() {
   const [category, setCategory] = useState('Technology');
   const [tags, setTags] = useState('');
   const [postLoading, setPostLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const post = posts.find((p) => p.id === Number(id));
@@ -89,17 +100,17 @@ export default function PostEdit() {
     }
   };
 
-  const handleDelete = async () => {
-    if (
-      window.confirm('Are you sure you want to delete this post? This action cannot be undone.')
-    ) {
-      try {
-        await deletePost(Number(id));
-        addToast('Post deleted successfully', 'success');
-        navigate('/dashboard');
-      } catch (err) {
-        addToast('Failed to delete post', 'error');
-      }
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deletePost(Number(id));
+      addToast('Post deleted successfully', 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      addToast('Failed to delete post', 'error');
     }
   };
 
@@ -147,7 +158,7 @@ export default function PostEdit() {
           </div>
           <Button
             variant="ghost"
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="size-4 mr-2" />
@@ -258,6 +269,32 @@ export default function PostEdit() {
           </div>
         </form>
       </main>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Delete Post?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              This action cannot be undone. This will permanently delete your post and remove it
+              from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="rounded-full bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
+            >
+              Delete Post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

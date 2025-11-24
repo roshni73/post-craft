@@ -71,7 +71,13 @@ export const usePosts = create<PostsState>((set, get) => ({
   },
 
   updatePost: async (id: number, post: Partial<Post>) => {
-    set({ loading: true, error: null });
+    const previousPosts = get().posts;
+    set({
+      posts: get().posts.map((p) => (p.id === id ? { ...p, ...post } : p)),
+      loading: true,
+      error: null,
+    });
+
     try {
       const response = await fetch(`${API_BASE}/posts/${id}`, {
         method: 'PUT',
@@ -80,14 +86,11 @@ export const usePosts = create<PostsState>((set, get) => ({
       });
 
       if (!response.ok) throw new Error('Failed to update post');
-      const updatedPost = await response.json();
 
-      set({
-        posts: get().posts.map((p) => (p.id === id ? { ...p, ...updatedPost, ...post } : p)),
-        loading: false,
-      });
+      set({ loading: false });
     } catch (error) {
       set({
+        posts: previousPosts,
         error: error instanceof Error ? error.message : 'An error occurred',
         loading: false,
       });
@@ -96,7 +99,13 @@ export const usePosts = create<PostsState>((set, get) => ({
   },
 
   deletePost: async (id: number) => {
-    set({ loading: true, error: null });
+    const previousPosts = get().posts;
+    set({
+      posts: get().posts.filter((p) => p.id !== id),
+      loading: true,
+      error: null,
+    });
+
     try {
       const response = await fetch(`${API_BASE}/posts/${id}`, {
         method: 'DELETE',
@@ -104,12 +113,10 @@ export const usePosts = create<PostsState>((set, get) => ({
 
       if (!response.ok) throw new Error('Failed to delete post');
 
-      set({
-        posts: get().posts.filter((p) => p.id !== id),
-        loading: false,
-      });
+      set({ loading: false });
     } catch (error) {
       set({
+        posts: previousPosts,
         error: error instanceof Error ? error.message : 'An error occurred',
         loading: false,
       });
@@ -120,19 +127,16 @@ export const usePosts = create<PostsState>((set, get) => ({
   getPost: async (id: number) => {
     set({ loading: true, error: null });
     try {
-      // First check if we have the post in state
       const existingPost = get().posts.find((p) => p.id === id);
       if (existingPost) {
         set({ loading: false });
         return existingPost;
       }
 
-      // If not, fetch from API
       const response = await fetch(`${API_BASE}/posts/${id}`);
       if (!response.ok) throw new Error('Failed to fetch post');
       const data = await response.json();
 
-      // Enhance with mock data
       const enhancedPost = {
         ...data,
         category: ['Technology', 'Lifestyle', 'Travel', 'Food', 'Health'][id % 5],

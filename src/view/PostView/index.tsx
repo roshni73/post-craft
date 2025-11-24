@@ -5,9 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/Components/Navbar';
 import { Button } from '@/Components/Button';
 import { useToast } from '@/Components/Toast';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/Alert-Dialog';
 import { Skeleton } from '@/Components/Skeleton';
-import { ArrowLeft, Calendar, User, Tag, Edit, Trash2, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Tag, Edit, Trash2, Clock, AlertTriangle } from 'lucide-react';
 import type { Post } from '@/types';
 import { Breadcrumbs } from '@/Components/Breadcrumbs';
 
@@ -21,6 +30,7 @@ export default function PostView() {
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -38,16 +48,18 @@ export default function PostView() {
     loadPost();
   }, [id, getPost]);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     if (!post) return;
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        await deletePost(post.id);
-        addToast('Post deleted successfully', 'success');
-        navigate('/dashboard');
-      } catch (err) {
-        addToast('Failed to delete post', 'error');
-      }
+    try {
+      await deletePost(post.id);
+      addToast('Post deleted successfully', 'success');
+      navigate('/dashboard');
+    } catch (err) {
+      addToast('Failed to delete post', 'error');
     }
   };
 
@@ -125,7 +137,7 @@ export default function PostView() {
                   variant="outline"
                   size="sm"
                   className="text-destructive hover:text-destructive"
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                 >
                   <Trash2 className="size-4 mr-2" />
                   Delete
@@ -166,6 +178,32 @@ export default function PostView() {
           )}
         </article>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Delete Post?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              This action cannot be undone. This will permanently delete your post and remove it
+              from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="rounded-full bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700"
+            >
+              Delete Post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
