@@ -20,74 +20,85 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/Alert-Dialog';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 const categories = ['Technology', 'Lifestyle', 'Travel', 'Food', 'Health'];
+
+const postSchema = yup.object({
+  title: yup
+    .string()
+    .required('Title is required')
+    .min(3, 'Title must be at least 3 characters')
+    .max(200, 'Title must be less than 200 characters'),
+  body: yup
+    .string()
+    .required('Content is required')
+    .min(10, 'Content must be at least 10 characters'),
+  category: yup.string().required('Category is required'),
+  tags: yup.string().optional().default(''),
+});
+
+type PostEditFormData = yup.InferType<typeof postSchema>;
 
 export default function PostEdit() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { posts, updatePost, deletePost, loading } = usePosts();
   const { addToast } = useToast();
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [category, setCategory] = useState('Technology');
-  const [tags, setTags] = useState('');
   const [postLoading, setPostLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<PostEditFormData>({
+    resolver: yupResolver(postSchema),
+    defaultValues: {
+      title: '',
+      body: '',
+      category: 'Technology',
+      tags: '',
+    },
+  });
+
+  const titleValue = watch('title');
+  const bodyValue = watch('body');
 
   useEffect(() => {
     const post = posts.find((p) => p.id === Number(id));
     if (post) {
-      setTitle(post.title);
-      setBody(post.body);
-      setCategory(post.category || 'Technology');
-      setTags(post.tags?.join(', ') || '');
+      reset({
+        title: post.title,
+        body: post.body,
+        category: post.category || 'Technology',
+        tags: post.tags?.join(', ') || '',
+      });
       setPostLoading(false);
     } else if (posts.length > 0) {
       addToast('Post not found', 'error');
       setPostLoading(false);
     }
-  }, [id, posts, addToast]);
+  }, [id, posts, addToast, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validation
-    if (!title.trim()) {
-      addToast('Title is required', 'error');
-      return;
-    }
-
-    if (title.length < 3) {
-      addToast('Title must be at least 3 characters', 'error');
-      return;
-    }
-
-    if (title.length > 200) {
-      addToast('Title must be less than 200 characters', 'error');
-      return;
-    }
-
-    if (!body.trim()) {
-      addToast('Content is required', 'error');
-      return;
-    }
-
-    if (body.length < 10) {
-      addToast('Content must be at least 10 characters', 'error');
-      return;
-    }
-
+  const onSubmit = async (data: PostEditFormData) => {
     try {
-      const tagsArray = tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
+      const tagsArray = data.tags
+        ? data.tags
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0)
+        : [];
 
       await updatePost(Number(id), {
-        title: title.trim(),
-        body: body.trim(),
-        category,
+        title: data.title.trim(),
+        body: data.body.trim(),
+        category: data.category,
         tags: tagsArray,
       });
 
@@ -127,7 +138,7 @@ export default function PostEdit() {
     );
   }
 
-  if (!title && !postLoading) {
+  if (!titleValue && !postLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navbar />
@@ -149,7 +160,7 @@ export default function PostEdit() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/10">
       <Navbar />
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <Breadcrumbs items={[{ label: title || 'Edit Post' }]} />
+        <Breadcrumbs items={[{ label: titleValue || 'Edit Post' }]} />
 
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -166,7 +177,7 @@ export default function PostEdit() {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid gap-8 md:grid-cols-[2fr,1fr]">
             <div className="space-y-8">
               <div className="space-y-2">
@@ -177,28 +188,42 @@ export default function PostEdit() {
                   id="title"
                   type="text"
                   placeholder="Enter a captivating title..."
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
                   disabled={loading}
-                  required
-                  className="h-12 text-lg bg-muted/30 border-transparent hover:bg-muted/50 focus:bg-background focus:border-primary/20 transition-all"
+                  className={`h-12 text-lg bg-muted/30 border-transparent hover:bg-muted/50 focus:bg-background focus:border-primary/20 transition-all ${errors.title ? 'border-red-500 focus:border-red-500' : ''}`}
+                  {...register('title')}
                 />
-                <p className="text-xs text-muted-foreground text-right">{title.length}/200</p>
+                {errors.title && (
+                  <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {titleValue?.length || 0}/200
+                </p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="body" className="text-base font-medium">
                   Content
                 </Label>
-                <div className="rounded-lg border border-border/40 overflow-hidden bg-background shadow-sm">
-                  <RichTextEditor
-                    content={body}
-                    onChange={setBody}
-                    placeholder="Write your story here..."
-                    disabled={loading}
+                <div
+                  className={`rounded-lg border overflow-hidden bg-background shadow-sm ${errors.body ? 'border-red-500' : 'border-border/40'}`}
+                >
+                  <Controller
+                    name="body"
+                    control={control}
+                    render={({ field }) => (
+                      <RichTextEditor
+                        content={field.value}
+                        onChange={field.onChange}
+                        placeholder="Write your story here..."
+                        disabled={loading}
+                      />
+                    )}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground text-right">{body.length} chars</p>
+                {errors.body && <p className="text-sm text-red-600 mt-1">{errors.body.message}</p>}
+                <p className="text-xs text-muted-foreground text-right">
+                  {bodyValue?.length || 0} chars
+                </p>
               </div>
             </div>
 
@@ -210,10 +235,9 @@ export default function PostEdit() {
                   </Label>
                   <select
                     id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
                     disabled={loading}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...register('category')}
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -221,6 +245,9 @@ export default function PostEdit() {
                       </option>
                     ))}
                   </select>
+                  {errors.category && (
+                    <p className="text-sm text-red-600 mt-1">{errors.category.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -231,10 +258,9 @@ export default function PostEdit() {
                     id="tags"
                     type="text"
                     placeholder="react, web..."
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
                     disabled={loading}
                     className="bg-background"
+                    {...register('tags')}
                   />
                   <p className="text-xs text-muted-foreground">Comma separated</p>
                 </div>

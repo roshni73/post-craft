@@ -16,13 +16,14 @@
     "jsx": "react-jsx",
     /* Path Aliases */
     "baseUrl": ".",
-    "paths": {
+      "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["src/Components/*"],
+      "@components/*": ["./src/components/*"],
       "@views/*": ["./src/view/*"],
       "@store/*": ["./src/store/*"],
       "@assets/*": ["./src/assets/*"]
     },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

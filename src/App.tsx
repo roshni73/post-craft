@@ -9,10 +9,11 @@ import { ProtectedRoute } from './Components/ProtectedRoute';
 import { NotFound } from './view/NotFound';
 import { Loader2 } from 'lucide-react';
 
-const Dashboard = lazy(() => import('./view/Dashboard'));
-const PostCreate = lazy(() => import('./view/PostCreate'));
-const PostEdit = lazy(() => import('./view/PostEdit'));
-const PostView = lazy(() => import('./view/PostView'));
+const Dashboard = lazy(() => import("./view/Dashboard"));
+const PostCreate = lazy(() => import("./view/PostCreate"));
+const PostEdit = lazy(() => import("./view/PostEdit"));
+const PostView = lazy(() => import("./view/PostView"));
+
 
 function App() {
   const { mode } = useTheme();

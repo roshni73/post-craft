@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useFormValidation } from '@/hooks/useFormValidation';
-import { Loader2, BookOpen, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Loader2, BookOpen, CheckCircle2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import * as yup from 'yup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Alert, AlertDescription } from '@/Components/Alert';
@@ -13,7 +14,6 @@ import { Button } from '@/Components/Button';
 interface LoginFormData {
   email: string;
   password: string;
-  [key: string]: unknown;
 }
 
 const loginSchema = yup.object({
@@ -30,26 +30,29 @@ export function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const {
-    values: formData,
-    loading,
-    submitError,
-    handleChange,
-    handleBlur,
+    register,
     handleSubmit,
-    getFieldError,
-  } = useFormValidation<LoginFormData>({
-    initialValues: {
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
       email: '',
       password: '',
     },
-    validationSchema: loginSchema,
-    onSubmit: async (values: LoginFormData) => {
-      await login(values.email, values.password);
-      navigate('/dashboard');
-    },
   });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      setSubmitError('');
+      await login(data.email, data.password);
+      navigate('/dashboard');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to login');
+    }
+  };
 
   useEffect(() => {
     if (location.state?.message) {
@@ -70,7 +73,15 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 relative">
+      <Button
+        variant="ghost"
+        className="absolute top-4 left-4 md:top-8 md:left-8"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Home
+      </Button>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
@@ -84,7 +95,7 @@ export function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             {successMessage && (
               <Alert className="bg-green-50 border-green-200">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -103,14 +114,12 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="john@example.com"
-                value={formData.email as string}
-                onChange={(e) => handleChange('email', e.target.value)}
-                onBlur={() => handleBlur('email')}
-                disabled={loading}
-                className={getFieldError('email') ? 'border-red-500 focus:border-red-500' : ''}
+                disabled={isSubmitting}
+                className={errors.email ? 'border-red-500 focus:border-red-500' : ''}
+                {...register('email')}
               />
-              {getFieldError('email') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('email')}</p>
+              {errors.email && (
+                <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
               )}
             </div>
 
@@ -121,31 +130,29 @@ export function LoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  value={formData.password as string}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  onBlur={() => handleBlur('password')}
-                  disabled={loading}
-                  className={`pr-10 ${getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}`}
+                  disabled={isSubmitting}
+                  className={`pr-10 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                  {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {getFieldError('password') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
+              {errors.password && (
+                <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
               )}
               <p className="text-sm text-muted-foreground">
                 Hint: Use any email and password (min 6 characters)
               </p>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Signing in...

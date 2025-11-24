@@ -1,8 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { Loader2, BookOpen, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 
-import { useFormValidation } from '@/hooks/useFormValidation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Label } from '@/Components/Label';
 import { Input } from '@/Components/Input';
@@ -16,7 +17,6 @@ interface RegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
-  [key: string]: unknown;
 }
 
 const registerSchema = yup.object({
@@ -51,38 +51,39 @@ const registerSchema = yup.object({
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register: registerUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const {
-    values: formData,
-    loading,
-    submitError,
-    handleChange,
-    handleBlur,
+    register,
     handleSubmit,
-    getFieldError,
-    setSubmitError,
-  } = useFormValidation<RegisterFormData>({
-    initialValues: {
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: yupResolver(registerSchema),
+    defaultValues: {
       name: '',
       email: '',
       password: '',
       confirmPassword: '',
     },
-    validationSchema: registerSchema,
-    onSubmit: async (values: RegisterFormData) => {
-      await register(values.name, values.email, values.password);
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
       setSubmitError('');
+      await registerUser(data.name, data.email, data.password);
       navigate('/login', {
         state: {
           message: 'Registration successful! Please login to continue.',
         },
         replace: true,
       });
-    },
-  });
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to register');
+    }
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -93,7 +94,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 relative">
+      <Button
+        variant="ghost"
+        className="absolute top-4 left-4 md:top-8 md:left-8"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Home
+      </Button>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
@@ -107,7 +116,7 @@ export default function Register() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             {submitError && (
               <Alert variant="destructive">
                 <AlertDescription>{submitError}</AlertDescription>
@@ -120,14 +129,12 @@ export default function Register() {
                 id="name"
                 type="text"
                 placeholder="John Doe"
-                value={formData.name as string}
-                onChange={(e) => handleChange('name', e.target.value)}
-                onBlur={() => handleBlur('name')}
-                disabled={loading}
-                className={getFieldError('name') ? 'border-red-500 focus:border-red-500' : ''}
+                disabled={isSubmitting}
+                className={errors.name ? 'border-red-500 focus:border-red-500' : ''}
+                {...register('name')}
               />
-              {getFieldError('name') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('name')}</p>
+              {errors.name && (
+                <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
               )}
             </div>
 
@@ -137,14 +144,12 @@ export default function Register() {
                 id="email"
                 type="email"
                 placeholder="john@example.com"
-                value={formData.email as string}
-                onChange={(e) => handleChange('email', e.target.value)}
-                onBlur={() => handleBlur('email')}
-                disabled={loading}
-                className={getFieldError('email') ? 'border-red-500 focus:border-red-500' : ''}
+                disabled={isSubmitting}
+                className={errors.email ? 'border-red-500 focus:border-red-500' : ''}
+                {...register('email')}
               />
-              {getFieldError('email') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('email')}</p>
+              {errors.email && (
+                <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
               )}
             </div>
 
@@ -155,23 +160,21 @@ export default function Register() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  value={formData.password as string}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  onBlur={() => handleBlur('password')}
-                  disabled={loading}
-                  className={`pr-10 ${getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}`}
+                  disabled={isSubmitting}
+                  className={`pr-10 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                  {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {getFieldError('password') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
+              {errors.password && (
+                <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Must be at least 6 characters with uppercase, lowercase, and number
@@ -185,16 +188,14 @@ export default function Register() {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
-                  value={formData.confirmPassword as string}
-                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                  onBlur={() => handleBlur('confirmPassword')}
-                  disabled={loading}
-                  className={`pr-10 ${getFieldError('confirmPassword') ? 'border-red-500 focus:border-red-500' : ''}`}
+                  disabled={isSubmitting}
+                  className={`pr-10 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
+                  {...register('confirmPassword')}
                 />
                 <button
                   type="button"
                   onClick={toggleConfirmPasswordVisibility}
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                 >
                   {showConfirmPassword ? (
@@ -204,13 +205,13 @@ export default function Register() {
                   )}
                 </button>
               </div>
-              {getFieldError('confirmPassword') && (
-                <p className="text-sm text-red-600 mt-1">{getFieldError('confirmPassword')}</p>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600 mt-1">{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Creating account...
