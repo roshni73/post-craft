@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormValidation } from '@/hooks/useFormValidation';
-import { Loader2, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Loader2, BookOpen, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import * as yup from 'yup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
 import { Alert, AlertDescription } from '@/Components/Alert';
@@ -29,6 +29,7 @@ export function LoginPage() {
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     values: formData,
@@ -50,7 +51,6 @@ export function LoginPage() {
     },
   });
 
-  // Check for success message from registration
   useEffect(() => {
     if (location.state?.message) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -64,6 +64,10 @@ export function LoginPage() {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -87,8 +91,6 @@ export function LoginPage() {
                 <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
               </Alert>
             )}
-
-            {/* Error Message */}
             {submitError && (
               <Alert variant="destructive">
                 <AlertDescription>{submitError}</AlertDescription>
@@ -114,16 +116,26 @@ export function LoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password as string}
-                onChange={(e) => handleChange('password', e.target.value)}
-                onBlur={() => handleBlur('password')}
-                disabled={loading}
-                className={getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.password as string}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  onBlur={() => handleBlur('password')}
+                  disabled={loading}
+                  className={`pr-10 ${getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {getFieldError('password') && (
                 <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
               )}

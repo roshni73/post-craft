@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/Card';
@@ -51,6 +52,8 @@ const registerSchema = yup.object({
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     values: formData,
@@ -80,6 +83,14 @@ export default function Register() {
       });
     },
   });
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -139,16 +150,26 @@ export default function Register() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="password"
-                value={formData.password as string}
-                onChange={(e) => handleChange('password', e.target.value)}
-                onBlur={() => handleBlur('password')}
-                disabled={loading}
-                className={getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={formData.password as string}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  onBlur={() => handleBlur('password')}
+                  disabled={loading}
+                  className={`pr-10 ${getFieldError('password') ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {getFieldError('password') && (
                 <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
               )}
@@ -159,18 +180,30 @@ export default function Register() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="confirm Password"
-                value={formData.confirmPassword as string}
-                onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                onBlur={() => handleBlur('confirmPassword')}
-                disabled={loading}
-                className={
-                  getFieldError('confirmPassword') ? 'border-red-500 focus:border-red-500' : ''
-                }
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword as string}
+                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                  onBlur={() => handleBlur('confirmPassword')}
+                  disabled={loading}
+                  className={`pr-10 ${getFieldError('confirmPassword') ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                <button
+                  type="button"
+                  onClick={toggleConfirmPasswordVisibility}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {getFieldError('confirmPassword') && (
                 <p className="text-sm text-red-600 mt-1">{getFieldError('confirmPassword')}</p>
               )}
